@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Software Architect – Master Garden</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0f0d;
+    --bg2: #0e1510;
+    --bg3: #121a14;
+    --panel: #141d16;
+    --border: #1e2e20;
+    --border2: #253328;
+    --green-dim: #2d4a30;
+    --green: #4a8c50;
+    --green-bright: #6dbd74;
+    --green-glow: #8eff96;
+    --gold: #c9a84c;
+    --gold2: #e8c96a;
+    --text: #d4e8d6;
+    --text-dim: #7a9c7e;
+    --text-faint: #3d5c40;
+    --done-bg: #0d1f10;
+    --done-border: #2d5c32;
+    --red: #e05555;
+    --section-colors: #4a8c50, #5a7c8c, #8c7a4a, #7a4a8c, #4a6c8c, #8c4a5a, #4a8c7a, #8c6a4a, #6a8c4a, #8c4a7a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Background garden texture ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 80%, rgba(74,140,80,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 80% 20%, rgba(58,100,65,0.05) 0%, transparent 70%),
+      radial-gradient(ellipse 30% 30% at 50% 50%, rgba(13,31,16,0.4) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Floating leaves ── */
+  .leaf {
+    position: fixed;
+    pointer-events: none;
+    opacity: 0;
+    font-size: 1.2rem;
+    animation: leafFall linear infinite;
+    z-index: 1;
+  }
+  @keyframes leafFall {
+    0%   { transform: translateY(-40px) rotate(0deg); opacity: 0; }
+    10%  { opacity: 0.4; }
+    90%  { opacity: 0.2; }
+    100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 2;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── Header ── */
+  header {
+    text-align: center;
+    padding: 60px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+    position: relative;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+  }
+  .header-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.25em;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    opacity: 0.8;
+  }
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  h1 span {
+    color: var(--green-bright);
+  }
+  .subtitle {
+    font-family: 'Crimson Pro', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    margin-top: 12px;
+  }
+
+  /* ── Dashboard Stats ── */
+  .dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 16px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    opacity: 0.6;
+  }
+  .stat-card:hover { border-color: var(--green-dim); }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--green-bright);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+  #eta-card .stat-num {
+    font-size: 1.5rem;
+    color: var(--gold2);
+  }
+
+  /* ── Overall Progress ── */
+  .overall-bar-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .overall-bar-wrap::before {
+    content: '🌱';
+    position: absolute;
+    right: 28px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2rem;
+    opacity: 0.15;
+  }
+  .bar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+  }
+  .bar-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .bar-pct {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--green-bright);
+  }
+  .progress-track {
+    background: var(--bg);
+    border-radius: 99px;
+    height: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border2);
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--green-dim), var(--green-bright));
+    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 20px;
+    background: linear-gradient(90deg, transparent, rgba(142,255,150,0.5));
+    border-radius: 99px;
+  }
+
+  /* ── Section Cards ── */
+  .section-grid {
+    display: grid;
+    gap: 28px;
+  }
+  .section-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: box-shadow 0.3s, border-color 0.3s;
+  }
+  .section-card:hover {
+    box-shadow: 0 4px 40px rgba(74,140,80,0.06);
+    border-color: var(--border2);
+  }
+  .section-header {
+    padding: 20px 24px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .section-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--border2);
+    min-width: 36px;
+    line-height: 1;
+  }
+  .section-title-wrap {
+    flex: 1;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+  }
+  .section-meta {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    margin-top: 3px;
+    letter-spacing: 0.1em;
+  }
+  .section-pct-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    padding: 4px 10px;
+    border-radius: 99px;
+    border: 1px solid;
+    font-weight: 500;
+  }
+  .chevron {
+    color: var(--text-faint);
+    font-size: 0.8rem;
+    transition: transform 0.3s;
+  }
+  .section-card.open .chevron { transform: rotate(180deg); }
+
+  /* Mini bar inside section header */
+  .section-mini-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--bg);
+  }
+  .section-mini-fill {
+    height: 100%;
+    transition: width 0.5s ease;
+  }
+
+  /* Topics list */
+  .topics-list {
+    display: none;
+    padding: 8px 0;
+  }
+  .section-card.open .topics-list { display: block; }
+
+  .topic-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 24px;
+    border-bottom: 1px solid rgba(30,46,32,0.5);
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+  }
+  .topic-item:last-child { border-bottom: none; }
+  .topic-item:hover { background: rgba(74,140,80,0.05); }
+  .topic-item.done {
+    background: var(--done-bg);
+  }
+  .topic-item.done .topic-name {
+    color: var(--text-faint);
+    text-decoration: line-through;
+    text-decoration-color: var(--green-dim);
+  }
+
+  .topic-checkbox {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--border2);
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    background: var(--bg);
+  }
+  .topic-item.done .topic-checkbox {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .topic-checkbox svg {
+    display: none;
+    width: 10px;
+    height: 10px;
+  }
+  .topic-item.done .topic-checkbox svg { display: block; }
+
+  .topic-name {
+    font-size: 0.82rem;
+    color: var(--text);
+    line-height: 1.4;
+    flex: 1;
+    transition: color 0.2s;
+  }
+  .topic-done-date {
+    font-size: 0.6rem;
+    color: var(--text-faint);
+    font-style: italic;
+  }
+
+  /* Bloom effect for completing a section */
+  @keyframes bloom {
+    0%   { box-shadow: 0 0 0 0 rgba(109,189,116,0); }
+    50%  { box-shadow: 0 0 30px 8px rgba(109,189,116,0.2); }
+    100% { box-shadow: 0 0 0 0 rgba(109,189,116,0); }
+  }
+  .section-card.just-completed {
+    animation: bloom 0.8s ease-out;
+  }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 40px 0 0;
+    font-size: 0.65rem;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    border-top: 1px solid var(--border);
+    margin-top: 60px;
+  }
+  footer a { color: var(--green-dim); text-decoration: none; }
+
+  /* ── Import / Export toolbar ── */
+  .io-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 24px;
+    margin-bottom: 40px;
+  }
+  .io-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-right: 4px;
+    white-space: nowrap;
+  }
+  .io-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+  }
+  .io-btn:hover { border-color: var(--green); color: var(--green-bright); }
+  .io-btn.import:hover { border-color: var(--gold); color: var(--gold2); }
+  .io-sep { width: 1px; height: 28px; background: var(--border); margin: 0 4px; }
+  .io-toast {
+    font-size: 0.65rem;
+    color: var(--green-bright);
+    opacity: 0;
+    transition: opacity 0.3s;
+    margin-left: auto;
+  }
+  .io-toast.show { opacity: 1; }
+
+  /* Reset button */
+  .reset-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 16px;
+  }
+  .reset-btn:hover {
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  /* Confetti canvas */
+  #confetti-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* Section color accent helpers */
+  .acc-0 { color: #6dbd74; border-color: #6dbd74; }
+  .acc-1 { color: #6daabd; border-color: #6daabd; }
+  .acc-2 { color: #bdba6d; border-color: #bdba6d; }
+  .acc-3 { color: #b06dbd; border-color: #b06dbd; }
+  .acc-4 { color: #6d9ebd; border-color: #6d9ebd; }
+  .acc-5 { color: #bd6d7a; border-color: #bd6d7a; }
+  .acc-6 { color: #6dbdb0; border-color: #6dbdb0; }
+  .acc-7 { color: #bd976d; border-color: #bd976d; }
+  .acc-8 { color: #9dbd6d; border-color: #9dbd6d; }
+  .acc-9 { color: #bd6dab; border-color: #bd6dab; }
+
+  .fill-0 { background: linear-gradient(90deg, #2d5c32, #6dbd74); }
+  .fill-1 { background: linear-gradient(90deg, #2d4a5c, #6daabd); }
+  .fill-2 { background: linear-gradient(90deg, #5c572d, #bdba6d); }
+  .fill-3 { background: linear-gradient(90deg, #4a2d5c, #b06dbd); }
+  .fill-4 { background: linear-gradient(90deg, #2d3e5c, #6d9ebd); }
+  .fill-5 { background: linear-gradient(90deg, #5c2d35, #bd6d7a); }
+  .fill-6 { background: linear-gradient(90deg, #2d5c57, #6dbdb0); }
+  .fill-7 { background: linear-gradient(90deg, #5c3f2d, #bd976d); }
+  .fill-8 { background: linear-gradient(90deg, #3f5c2d, #9dbd6d); }
+  .fill-9 { background: linear-gradient(90deg, #5c2d53, #bd6dab); }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<div class="wrapper">
+  <header>
+    <div class="header-tag">🌿 Learning Garden · Software Architecture</div>
+    <h1>Architect's<br><span>Master Garden</span></h1>
+    <p class="subtitle">Each topic a seed. Each check a bloom.</p>
+  </header>
+
+  <!-- Dashboard Stats -->
+  <div class="dashboard" id="dashboard">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-total">0</div>
+      <div class="stat-label">Total Topics</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-done">0</div>
+      <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-remain">0</div>
+      <div class="stat-label">Remaining</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-sections">0</div>
+      <div class="stat-label">Sections Done</div>
+    </div>
+    <div class="stat-card" id="eta-card">
+      <div class="stat-num" id="stat-eta">–</div>
+      <div class="stat-label">Days Left (2 hrs/day)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-streak">0</div>
+      <div class="stat-label">Topics Today</div>
+    </div>
+  </div>
+
+  <!-- Overall progress bar -->
+  <div class="overall-bar-wrap">
+    <div class="bar-header">
+      <span class="bar-title">Overall Mastery Progress</span>
+      <span class="bar-pct" id="overall-pct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="overall-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- Import / Export toolbar -->
+  <div class="io-toolbar">
+    <span class="io-label">Progress</span>
+    <button class="io-btn export" id="export-btn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export CSV
+    </button>
+    <button class="io-btn import" id="import-btn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Import CSV
+    </button>
+    <input type="file" id="import-file" accept=".csv" style="display:none"/>
+    <div class="io-sep"></div>
+    <span class="io-label" style="font-size:0.6rem; color:var(--text-faint)">Columns: Section, Topic, Status, CompletedDate</span>
+    <span class="io-toast" id="io-toast">✓ Done</span>
+  </div>
+
+  <!-- Sections -->
+  <div class="section-grid" id="section-grid"></div>
+
+  <footer>
+    <p>Progress stored locally in your browser · Opens where you left off</p>
+    <br>
+    <button class="reset-btn" id="reset-btn">⚠ Reset All Progress</button>
+  </footer>
+</div>
+
+<script>
+const SECTIONS = [
+  {
+    title: "Architecture Foundations",
+    topics: [
+      "Architectural Styles (Layered, Clean, Hexagonal, Onion)",
+      "Monolith vs Modular Monolith",
+      "Microservices Architecture",
+      "Event-Driven Architecture",
+      "Domain-Driven Design (DDD)",
+      "CQRS Pattern",
+      "Saga Pattern",
+      "API Gateway Pattern",
+      "Backend for Frontend (BFF)",
+      "Strangler Fig Pattern",
+      "SOLID Principles in Architecture",
+      "12-Factor App Methodology"
+    ]
+  },
+  {
+    title: "System Design & Scalability",
+    topics: [
+      "Horizontal vs Vertical Scaling",
+      "Load Balancing Strategies",
+      "Stateless System Design",
+      "Caching Strategies (Redis Patterns)",
+      "Database Scaling (Sharding, Replication)",
+      "CAP Theorem",
+      "Consistency Models",
+      "Rate Limiting Techniques",
+      "Circuit Breaker Pattern",
+      "Bulkhead Isolation",
+      "Distributed Tracing Concepts",
+      "Designing for High Availability"
+    ]
+  },
+  {
+    title: "Cloud Architecture (Azure Focus)",
+    topics: [
+      "Azure Resource Architecture Design",
+      "Azure App Services vs AKS Decision Making",
+      "Azure Kubernetes Service (AKS) Architecture",
+      "Azure Service Bus & Event Grid",
+      "Azure API Management",
+      "Azure Functions Architecture",
+      "Azure Storage Patterns",
+      "Azure Networking (VNet, NSG, Peering)",
+      "Infrastructure as Code (Bicep/Terraform)",
+      "Cost Optimization Strategy",
+      "Multi-Region Deployment Design",
+      "Disaster Recovery Strategy"
+    ]
+  },
+  {
+    title: "AI & Generative AI Architecture",
+    topics: [
+      "LLM Architecture Fundamentals",
+      "Prompt Engineering Patterns",
+      "RAG System Architecture",
+      "Vector Databases (Design & Selection)",
+      "Embedding Strategies",
+      "Model Selection Strategy (GPT vs Open Source)",
+      "AI Rate Limiting & Cost Control",
+      "AI Observability & Logging",
+      "AI Safety & Guardrails",
+      "AI Hallucination Mitigation",
+      "AI Workflow Orchestration (LangChain Patterns)",
+      "Fine-Tuning vs Prompt Tuning Decision",
+      "AI Caching Strategies",
+      "AI Evaluation Frameworks"
+    ]
+  },
+  {
+    title: "DevOps & Delivery Architecture",
+    topics: [
+      "CI/CD Design (GitHub Actions)",
+      "ArgoCD Deployment Architecture",
+      "Helm Chart Architecture",
+      "Blue-Green Deployment",
+      "Canary Deployment",
+      "Feature Flags Strategy",
+      "GitOps Model",
+      "Container Security Basics",
+      "Docker Image Optimization",
+      "Observability Stack (Logs, Metrics, Traces)",
+      "Production Incident Response Model",
+      "Release Governance Model"
+    ]
+  },
+  {
+    title: "Data Architecture",
+    topics: [
+      "Relational vs NoSQL Decision Matrix",
+      "PostgreSQL Performance Optimization",
+      "Indexing Strategy",
+      "Data Modeling for Microservices",
+      "Data Migration Strategy",
+      "Event Sourcing Basics",
+      "Data Lake vs Data Warehouse",
+      "Streaming Architecture (Kafka Concepts)",
+      "ETL vs ELT Design",
+      "Data Governance Principles",
+      "PII & Data Compliance Design"
+    ]
+  },
+  {
+    title: "Security Architecture",
+    topics: [
+      "OAuth2 & OpenID Connect",
+      "JWT Design & Validation",
+      "Role-Based Access Control (RBAC)",
+      "Zero Trust Architecture",
+      "API Security Patterns",
+      "Secrets Management",
+      "Secure Coding Practices",
+      "Threat Modeling Basics",
+      "OWASP Top 10 Review",
+      "Encryption at Rest & Transit",
+      "Secure AI Model Deployment"
+    ]
+  },
+  {
+    title: "Performance Engineering",
+    topics: [
+      "Performance Testing Strategy",
+      "Load Testing Tools",
+      "Profiling .NET Applications",
+      "Memory Leak Detection",
+      "Async & Parallel Programming Design",
+      "Latency Budgeting",
+      "Throughput Optimization",
+      "Database Query Optimization",
+      "CDN Strategy",
+      "Bottleneck Analysis Framework"
+    ]
+  },
+  {
+    title: "Architecture Communication & Leadership",
+    topics: [
+      "Architecture Decision Records (ADR)",
+      "Technical Roadmap Planning",
+      "Stakeholder Communication Framework",
+      "Architecture Review Process",
+      "Trade-Off Analysis Framework",
+      "Technical Risk Assessment",
+      "Cost vs Value Analysis",
+      "Writing Architecture Documents",
+      "Running Design Workshops",
+      "Mentoring Engineers",
+      "Conflict Resolution in Tech Teams"
+    ]
+  },
+  {
+    title: "AI Product Architecture Thinking",
+    topics: [
+      "AI Product Requirement Breakdown",
+      "AI Use Case Prioritization",
+      "AI vs Rule-Based Decision Framework",
+      "AI Cost Estimation Model",
+      "Experimentation Framework for AI",
+      "Feedback Loop Design",
+      "Human-in-the-Loop Design",
+      "Model Versioning Strategy",
+      "A/B Testing for AI Systems",
+      "Responsible AI Governance"
+    ]
+  }
+];
+
+const STORAGE_KEY = 'architect-garden-v1';
+const TODAY = new Date().toISOString().split('T')[0];
+// ~1 hour per topic
+const HRS_PER_TOPIC = 1;
+const HRS_PER_DAY = 2;
+
+// ── Load/Save state ──
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : { done: {}, dates: {} };
+  } catch { return { done: {}, dates: {} }; }
+}
+function saveState(state) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+let state = loadState();
+
+// ── Build UI ──
+function topicKey(si, ti) { return `${si}-${ti}`; }
+
+function buildSections() {
+  const grid = document.getElementById('section-grid');
+  grid.innerHTML = '';
+  SECTIONS.forEach((sec, si) => {
+    const card = document.createElement('div');
+    card.className = 'section-card';
+    card.id = `section-${si}`;
+
+    const doneTopic = sec.topics.filter((_, ti) => state.done[topicKey(si, ti)]).length;
+    const pct = Math.round(doneTopic / sec.topics.length * 100);
+
+    card.innerHTML = `
+      <div class="section-header" onclick="toggleSection(${si})">
+        <div class="section-num">${String(si+1).padStart(2,'0')}</div>
+        <div class="section-title-wrap">
+          <div class="section-title">${sec.title}</div>
+          <div class="section-meta">${doneTopic} / ${sec.topics.length} topics · ${Math.round(sec.topics.length * HRS_PER_TOPIC / HRS_PER_DAY * 10)/10} days at 2h/day</div>
+        </div>
+        <span class="section-pct-badge acc-${si % 10}">${pct}%</span>
+        <span class="chevron">▼</span>
+        <div class="section-mini-bar">
+          <div class="section-mini-fill fill-${si % 10}" id="mini-fill-${si}" style="width:${pct}%"></div>
+        </div>
+      </div>
+      <div class="topics-list" id="topics-${si}">
+        ${sec.topics.map((t, ti) => buildTopicHTML(si, ti, t)).join('')}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function buildTopicHTML(si, ti, name) {
+  const key = topicKey(si, ti);
+  const isDone = !!state.done[key];
+  const doneDate = state.dates[key] || '';
+  return `
+    <div class="topic-item ${isDone ? 'done' : ''}" id="topic-${si}-${ti}" onclick="toggleTopic(${si},${ti})">
+      <div class="topic-checkbox">
+        <svg viewBox="0 0 12 10" fill="none" stroke="white" stroke-width="2">
+          <polyline points="1,5 4.5,8.5 11,1"/>
+        </svg>
+      </div>
+      <span class="topic-name">${name}</span>
+      ${isDone ? `<span class="topic-done-date">${doneDate}</span>` : ''}
+    </div>
+  `;
+}
+
+function toggleSection(si) {
+  const card = document.getElementById(`section-${si}`);
+  card.classList.toggle('open');
+}
+
+function toggleTopic(si, ti) {
+  const key = topicKey(si, ti);
+  const wasDone = !!state.done[key];
+  if (wasDone) {
+    delete state.done[key];
+    delete state.dates[key];
+  } else {
+    state.done[key] = true;
+    state.dates[key] = TODAY;
+  }
+  saveState(state);
+
+  // Re-render topic item
+  const el = document.getElementById(`topic-${si}-${ti}`);
+  const name = SECTIONS[si].topics[ti];
+  el.outerHTML = buildTopicHTML(si, ti, name);
+  // Re-attach listener (event delegation workaround — just rebuild)
+  document.getElementById(`topic-${si}-${ti}`).onclick = () => toggleTopic(si, ti);
+
+  updateSectionBar(si);
+  updateDashboard();
+
+  // Bloom on section complete
+  const sec = SECTIONS[si];
+  const allDone = sec.topics.every((_, t) => state.done[topicKey(si, t)]);
+  if (allDone && !wasDone) {
+    const card = document.getElementById(`section-${si}`);
+    card.classList.add('just-completed');
+    setTimeout(() => card.classList.remove('just-completed'), 900);
+    fireConfetti();
+  }
+}
+
+function updateSectionBar(si) {
+  const sec = SECTIONS[si];
+  const done = sec.topics.filter((_, ti) => state.done[topicKey(si, ti)]).length;
+  const pct = Math.round(done / sec.topics.length * 100);
+  const fill = document.getElementById(`mini-fill-${si}`);
+  if (fill) fill.style.width = pct + '%';
+  // Update badge
+  const card = document.getElementById(`section-${si}`);
+  if (card) {
+    const badge = card.querySelector('.section-pct-badge');
+    if (badge) badge.textContent = pct + '%';
+    const meta = card.querySelector('.section-meta');
+    if (meta) meta.textContent = `${done} / ${sec.topics.length} topics · ${Math.round(sec.topics.length * HRS_PER_TOPIC / HRS_PER_DAY * 10)/10} days at 2h/day`;
+  }
+}
+
+function updateDashboard() {
+  const total = SECTIONS.reduce((a, s) => a + s.topics.length, 0);
+  const done = Object.keys(state.done).filter(k => state.done[k]).length;
+  const remain = total - done;
+  const pct = total ? Math.round(done / total * 100) : 0;
+
+  const sectionsDone = SECTIONS.filter((sec, si) =>
+    sec.topics.every((_, ti) => state.done[topicKey(si, ti)])
+  ).length;
+
+  // ETA
+  const etaDays = remain === 0 ? 0 : Math.ceil(remain * HRS_PER_TOPIC / HRS_PER_DAY);
+  const etaDate = new Date();
+  etaDate.setDate(etaDate.getDate() + etaDays);
+  const etaStr = remain === 0 ? '🎉 Done!' : `~${etaDays}d`;
+
+  // Topics done today
+  const todayCount = Object.entries(state.dates).filter(([,d]) => d === TODAY).length;
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-done').textContent = done;
+  document.getElementById('stat-remain').textContent = remain;
+  document.getElementById('stat-sections').textContent = `${sectionsDone}/${SECTIONS.length}`;
+  document.getElementById('stat-eta').textContent = etaStr;
+  document.getElementById('stat-streak').textContent = todayCount;
+  document.getElementById('overall-pct').textContent = pct + '%';
+  document.getElementById('overall-fill').style.width = pct + '%';
+}
+
+// ── Confetti ──
+function fireConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const pieces = Array.from({length: 80}, () => ({
+    x: Math.random() * canvas.width,
+    y: -10,
+    r: Math.random() * 6 + 3,
+    d: Math.random() * 6 + 2,
+    color: ['#6dbd74','#c9a84c','#6daabd','#e8c96a','#b06dbd'][Math.floor(Math.random()*5)],
+    tilt: Math.random() * 10 - 5,
+    tiltAngle: 0,
+    tiltSpeed: Math.random() * 0.1 + 0.05
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p => {
+      ctx.beginPath();
+      ctx.fillStyle = p.color;
+      ctx.ellipse(p.x, p.y, p.r, p.r * 0.4, p.tiltAngle, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    pieces.forEach(p => {
+      p.y += p.d;
+      p.tiltAngle += p.tiltSpeed;
+      p.x += Math.sin(p.tiltAngle) * 1.5;
+    });
+    frame++;
+    if (frame < 120) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+
+// ── Floating leaves ──
+function spawnLeaves() {
+  const emojis = ['🍃','🌿','🍀','🌱','🌾'];
+  for (let i = 0; i < 8; i++) {
+    const leaf = document.createElement('div');
+    leaf.className = 'leaf';
+    leaf.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    leaf.style.left = Math.random() * 100 + 'vw';
+    leaf.style.animationDuration = (12 + Math.random() * 20) + 's';
+    leaf.style.animationDelay = (Math.random() * 20) + 's';
+    leaf.style.fontSize = (0.7 + Math.random() * 0.8) + 'rem';
+    document.body.appendChild(leaf);
+  }
+}
+
+// ── Toast helper ──
+function showToast(msg) {
+  const t = document.getElementById('io-toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Export CSV ──
+function exportCSV() {
+  const rows = [['Section','Topic','Status','CompletedDate']];
+  SECTIONS.forEach((sec, si) => {
+    sec.topics.forEach((topic, ti) => {
+      const key = topicKey(si, ti);
+      const done = !!state.done[key];
+      const date = state.dates[key] || '';
+      // Wrap fields that might contain commas in quotes
+      const escape = v => `"${String(v).replace(/"/g,'""')}"`;
+      rows.push([escape(sec.title), escape(topic), done ? 'done' : 'pending', date]);
+    });
+  });
+  const csv = rows.map(r => r.join(',')).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = `architect-garden-${dateStr}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ Exported successfully');
+}
+
+// ── Import CSV ──
+function importCSV(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const text = e.target.result;
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      if (lines.length < 2) { showToast('⚠ Empty or invalid CSV'); return; }
+
+      // Parse header row (skip it)
+      const newState = { done: {}, dates: {} };
+      let matched = 0, skipped = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        // Robust CSV parse: handle quoted fields
+        const cols = parseCSVLine(lines[i]);
+        if (cols.length < 3) { skipped++; continue; }
+        const [secTitle, topicName, status, date] = cols.map(c => c.trim());
+        if (!secTitle || !topicName) { skipped++; continue; }
+
+        // Find matching section + topic
+        let found = false;
+        SECTIONS.forEach((sec, si) => {
+          sec.topics.forEach((t, ti) => {
+            if (sec.title.toLowerCase() === secTitle.toLowerCase() &&
+                t.toLowerCase() === topicName.toLowerCase()) {
+              const key = topicKey(si, ti);
+              if (status === 'done') {
+                newState.done[key] = true;
+                newState.dates[key] = date || new Date().toISOString().split('T')[0];
+              }
+              found = true;
+              matched++;
+            }
+          });
+        });
+        if (!found) skipped++;
+      }
+
+      state = newState;
+      saveState(state);
+      buildSections();
+      updateDashboard();
+      showToast(`✓ Imported ${matched} topics${skipped ? ` (${skipped} skipped)` : ''}`);
+    } catch (err) {
+      showToast('⚠ Failed to parse CSV');
+      console.error(err);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i+1] === '"') { cur += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if (ch === ',' && !inQuotes) {
+      result.push(cur); cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  result.push(cur);
+  return result;
+}
+
+document.getElementById('export-btn').addEventListener('click', exportCSV);
+document.getElementById('import-btn').addEventListener('click', () => {
+  document.getElementById('import-file').value = '';
+  document.getElementById('import-file').click();
+});
+document.getElementById('import-file').addEventListener('change', (e) => {
+  if (e.target.files[0]) importCSV(e.target.files[0]);
+});
+
+// ── Reset ──
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (confirm('Reset ALL progress? This cannot be undone.')) {
+    state = { done: {}, dates: {} };
+    saveState(state);
+    buildSections();
+    updateDashboard();
+  }
+});
+
+// ── Init ──
+buildSections();
+updateDashboard();
+spawnLeaves();
+
+// Open first section by default if nothing is done yet
+const totalDone = Object.keys(state.done).filter(k => state.done[k]).length;
+if (totalDone === 0) {
+  document.getElementById('section-0')?.classList.add('open');
+}
+</script>
+</body>
+</html>
